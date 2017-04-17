@@ -9,7 +9,6 @@ class Instance
 public:
 	void clear()
 	{
-		m_id.clear();
 		m_tweet.clear();
 		m_label.clear();
 	}
@@ -42,7 +41,6 @@ public:
 		m_tweet.resize(length);
 	}
 public:
-	string m_id;
 	vector<string> m_tweet;
 	string m_label;
 };
