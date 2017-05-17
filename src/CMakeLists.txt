@@ -4,6 +4,7 @@ include_directories(
 )
 
 add_subdirectory(NNCNNLabeler)
+add_subdirectory(NNCNNMLLabeler)
 add_subdirectory(NNRNNLabeler)
 add_subdirectory(NNBiRNNLabeler)
 add_subdirectory(NNBiGRNNLabeler)

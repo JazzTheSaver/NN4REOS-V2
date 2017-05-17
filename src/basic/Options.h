@@ -25,6 +25,7 @@ public:
   dtype regParameter;
   dtype dropProb;
 
+	int cnnLayerSize;
   int segHiddenSize;
   int hiddenSize;
   int rnnHiddenSize;
@@ -71,6 +72,7 @@ public:
     regParameter = 1e-8;
     dropProb = 0.0;
 
+		cnnLayerSize = 1;
     segHiddenSize = 100;
     hiddenSize = 100;
     rnnHiddenSize = 100;
@@ -133,6 +135,8 @@ public:
       if (pr.first == "dropProb")
         dropProb = atof(pr.second.c_str());
 
+      if (pr.first == "cnnLayerSize")
+        cnnLayerSize = atoi(pr.second.c_str());
       if (pr.first == "segHiddenSize")
         segHiddenSize = atoi(pr.second.c_str());
       if (pr.first == "hiddenSize")
@@ -204,6 +208,7 @@ public:
     std::cout << "regParameter = " << regParameter << std::endl;
     std::cout << "dropProb = " << dropProb << std::endl;
 
+    std::cout << "cnnLayerSize = " << cnnLayerSize << std::endl;
     std::cout << "segHiddenSize = " << segHiddenSize << std::endl;
     std::cout << "hiddenSize = " << hiddenSize << std::endl;
     std::cout << "rnnHiddenSize = " << rnnHiddenSize << std::endl;
