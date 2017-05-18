@@ -8,7 +8,7 @@ class ModelParams{
 public:
 	Alphabet wordAlpha; // should be initialized outside
 	LookupTable words; // should be initialized outside
-	vector<UniParams> hidden_linears;
+	vector<LSTMParams> rnn_params;
 	UniParams olayer_linear; // output
 public:
 	Alphabet labelAlpha; // should be initialized outside
@@ -28,10 +28,10 @@ public:
 		opts.windowHiddenOutput = opts.hiddenSize * opts.wordWindow;
 		opts.labelSize = labelAlpha.size();
 
-		hidden_linears.resize(opts.cnnLayerSize);
-		hidden_linears[0].initial(opts.hiddenSize, opts.windowOutput, true, mem);
-		for(int idx = 1; idx < opts.cnnLayerSize;idx++)
-			hidden_linears[idx].initial(opts.hiddenSize, opts.windowHiddenOutput, true, mem);
+		rnn_params.resize(opts.rnnLayerSize);
+		rnn_params[0].initial(opts.hiddenSize, opts.windowOutput, mem);
+		for (int idx = 1; idx < opts.rnnLayerSize; idx++)
+			rnn_params[idx].initial(opts.hiddenSize, opts.windowHiddenOutput, mem);
 
 		opts.inputSize = opts.hiddenSize * 3;
 		olayer_linear.initial(opts.labelSize, opts.inputSize, false, mem);
@@ -54,9 +54,9 @@ public:
 
 	void exportModelParams(ModelUpdate& ada){
 		words.exportAdaParams(ada);
-		int cnn_layer_size = hidden_linears.size();
+		int cnn_layer_size = rnn_params.size();
 		for(int idx = 0; idx < cnn_layer_size; idx++)
-			hidden_linears[idx].exportAdaParams(ada);
+			rnn_params[idx].exportAdaParams(ada);
 		olayer_linear.exportAdaParams(ada);
 	}
 

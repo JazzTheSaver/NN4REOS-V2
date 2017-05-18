@@ -15,7 +15,7 @@ struct HyperParams{
 	dtype adaEps; // for optimization
 
 	int hiddenSize;
-	int cnnLayerSize;
+	int rnnLayerSize;
 	int wordContext;
 	int wordWindow;
 	int windowOutput;
@@ -38,10 +38,10 @@ public:
 		nnRegular = opt.regParameter;
 		adaAlpha = opt.adaAlpha;
 		adaEps = opt.adaEps;
-		if (opt.cnnLayerSize < 1)
-			cnnLayerSize = 1;
+		if (opt.rnnLayerSize < 1)
+			rnnLayerSize = 1;
 		else
-			cnnLayerSize = opt.cnnLayerSize;
+			rnnLayerSize = opt.rnnLayerSize;
 		hiddenSize = opt.hiddenSize;
 		wordContext = opt.wordcontext;
 		dropProb = opt.dropProb;

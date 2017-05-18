@@ -13,9 +13,9 @@ public:
 	// node instances
 	vector<LookupNode> _word_inputs;
 
-	int cnn_layer_size;
+	int rnn_layer_size;
 	vector<WindowBuilder> _word_windows;
-	vector<vector<UniNode> > _hiddens;
+	vector<RNNBuilder> _RNNs;
 
 	AvgPoolNode _avg_pooling;
 	MaxPoolNode _max_pooling;
@@ -34,16 +34,16 @@ public:
 public:
 	//allocate enough nodes 
 	inline void createNodes(int sent_length, int layer_size){
-		cnn_layer_size = layer_size;
+		rnn_layer_size = layer_size;
 		_word_inputs.resize(sent_length);
 
-		_word_windows.resize(cnn_layer_size);
-		_hiddens.resize(cnn_layer_size);
+		_word_windows.resize(rnn_layer_size);
+		_RNNs.resize(rnn_layer_size);
 
-		cnn_layer_size = layer_size;
-		for (int idx = 0; idx < cnn_layer_size; idx++) {
+		rnn_layer_size = layer_size;
+		for (int idx = 0; idx < rnn_layer_size; idx++) {
 			_word_windows[idx].resize(sent_length);
-			_hiddens[idx].resize(sent_length);
+			_RNNs[idx].resize(sent_length);
 		}
 
 		_avg_pooling.setParam(sent_length);
@@ -55,13 +55,13 @@ public:
 		Graph::clear();
 		_word_inputs.clear();
 
-		for(int idx = 0; idx < cnn_layer_size; idx++){
+		for(int idx = 0; idx < rnn_layer_size; idx++){
 			_word_windows[idx].clear();
-			_hiddens[idx].clear();
+			_RNNs[idx].clear();
 		}
 
 		_word_windows.clear();
-		_hiddens.clear();
+		_RNNs.clear();
 	}
 
 public:
@@ -69,16 +69,14 @@ public:
 		for (int idx = 0; idx < _word_inputs.size(); idx++) {
 			_word_inputs[idx].setParam(&model.words);
 			_word_inputs[idx].init(opts.wordDim, opts.dropProb, mem);
+		}
 
-			for (int idy = 0; idy < cnn_layer_size; idy++) {
-				_hiddens[idy][idx].setParam(&model.hidden_linears[idy]);
-				_hiddens[idy][idx].init(opts.hiddenSize, opts.dropProb, mem);
-			}
-
+		for (int idy = 0; idy < rnn_layer_size; idy++) {
+			_RNNs[idy].init(&model.rnn_params[idy], opts.dropProb, true, mem);
 		}
 
 		_word_windows[0].init(opts.wordDim, opts.wordContext, mem);
-		for (int idy = 1; idy < cnn_layer_size; idy++) {
+		for (int idy = 1; idy < rnn_layer_size; idy++) {
 			_word_windows[idy].init(opts.hiddenSize, opts.wordContext, mem);
 		}
 
@@ -107,20 +105,17 @@ public:
 		}
 		_word_windows[0].forward(this, getPNodes(_word_inputs, words_num));
 
-		for (int i = 0; i < words_num; i++) {
-			_hiddens[0][i].forward(this, &_word_windows[0]._outputs[i]);
+		_RNNs[0].forward(this, getPNodes(_word_windows[0]._outputs, words_num));
+
+		for(int i = 1; i < rnn_layer_size; i++){
+			_word_windows[i].forward(this, getPNodes(_RNNs[i - 1]._output, words_num));
+
+			_RNNs[i].forward(this, getPNodes(_word_windows[i]._outputs, words_num));
 		}
 
-		for(int i = 1; i < cnn_layer_size; i++){
-			_word_windows[i].forward(this, getPNodes(_hiddens[i - 1], words_num));
-			for (int j = 0; j < words_num; j++) {
-				_hiddens[i][j].forward(this, &_word_windows[i]._outputs[j]);
-			}
-		}
-
-		_avg_pooling.forward(this, getPNodes(_hiddens[cnn_layer_size - 1], words_num));
-		_max_pooling.forward(this, getPNodes(_hiddens[cnn_layer_size - 1], words_num));
-		_min_pooling.forward(this, getPNodes(_hiddens[cnn_layer_size - 1], words_num));
+		_avg_pooling.forward(this, getPNodes(_RNNs[rnn_layer_size - 1]._output, words_num));
+		_max_pooling.forward(this, getPNodes(_RNNs[rnn_layer_size - 1]._output, words_num));
+		_min_pooling.forward(this, getPNodes(_RNNs[rnn_layer_size - 1]._output, words_num));
 
 		_concat.forward(this, &_avg_pooling, &_max_pooling, &_min_pooling);
 		_output.forward(this, &_concat);
