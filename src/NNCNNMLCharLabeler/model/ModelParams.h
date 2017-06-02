@@ -10,6 +10,10 @@ public:
 	LookupTable words; // should be initialized outside
 	vector<UniParams> hidden_linears;
 	UniParams olayer_linear; // output
+
+	Alphabet charAlpha; // should be initialized outside
+	LookupTable chars; // should be initialized outside
+	UniParams char_hidden_linear;
 public:
 	Alphabet labelAlpha; // should be initialized outside
 	SoftMaxLoss loss;
@@ -24,16 +28,22 @@ public:
 		}
 		opts.wordDim = words.nDim;
 		opts.wordWindow = opts.wordContext * 2 + 1;
-		opts.windowOutput = opts.wordDim * opts.wordWindow;
+		opts.wordWindowOutput = opts.wordDim * opts.wordWindow;
+		opts.charDim = chars.nDim;
+		opts.charWindow = opts.charContext * 2 + 1;
+		opts.charWindowOutput = opts.charDim * opts.charWindow;
+
 		opts.windowHiddenOutput = opts.hiddenSize * opts.wordWindow;
 		opts.labelSize = labelAlpha.size();
 
 		hidden_linears.resize(opts.cnnLayerSize);
-		hidden_linears[0].initial(opts.hiddenSize, opts.windowOutput, true, mem);
+		hidden_linears[0].initial(opts.hiddenSize, opts.wordWindowOutput, true, mem);
 		for(int idx = 1; idx < opts.cnnLayerSize;idx++)
 			hidden_linears[idx].initial(opts.hiddenSize, opts.windowHiddenOutput, true, mem);
 
-		opts.inputSize = opts.hiddenSize * 3;
+		char_hidden_linear.initial(opts.charHiddenSize, opts.charWindowOutput, true, mem);
+
+		opts.inputSize = (opts.charHiddenSize + opts.hiddenSize ) * 3;
 		olayer_linear.initial(opts.labelSize, opts.inputSize, false, mem);
 		return true;
 	}
@@ -44,11 +54,6 @@ public:
 		if (words.nVSize <= 0 || labelAlpha.size() <= 0){
 			return false;
 		}
-		opts.wordDim = words.nDim;
-		opts.wordWindow = opts.wordContext * 2 + 1;
-		opts.windowOutput = opts.wordDim * opts.wordWindow;
-		opts.labelSize = labelAlpha.size();
-		opts.inputSize = opts.hiddenSize * 3;
 		return true;
 	}
 
@@ -57,6 +62,7 @@ public:
 		int cnn_layer_size = hidden_linears.size();
 		for(int idx = 0; idx < cnn_layer_size; idx++)
 			hidden_linears[idx].exportAdaParams(ada);
+		char_hidden_linear.exportAdaParams(ada);
 		olayer_linear.exportAdaParams(ada);
 	}
 

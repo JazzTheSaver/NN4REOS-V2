@@ -30,10 +30,18 @@ int Classifier::createAlphabet(const vector<Instance>& vecInsts) {
 
 		m_driver._modelparams.labelAlpha.from_string(label);
 		int words_num = words.size();
-		for (int i = 0; i < words_num; i++)
-		{
+		vector<string> chs;
+		int chars_num;
+		for (int i = 0; i < words_num; i++) {
 			string curword = normalize_to_lowerwithdigit(words[i]);
 			m_word_stats[curword]++;
+			chs.clear();
+			getCharactersFromString(curword, chs);
+			chars_num = chs.size();
+			for (int j = 0; j < chars_num; j++) {
+				string curchar = normalize_to_lowerwithdigit(chs[j]);
+				m_char_stats[curchar]++;
+			}
 		}
 
 		if (m_options.maxInstance > 0 && numInstance == m_options.maxInstance)
@@ -42,6 +50,8 @@ int Classifier::createAlphabet(const vector<Instance>& vecInsts) {
 
 	cout << numInstance << " " << endl;
 	cout << "Label num: " << m_driver._modelparams.labelAlpha.size() << endl;
+	cout << "word stats num: " << m_word_stats.size() << endl;
+	cout << "char stats num: " << m_char_stats.size() << endl;
 	m_driver._modelparams.labelAlpha.set_fixed_flag(true);
 
 	return 0;
@@ -56,9 +66,19 @@ int Classifier::addTestAlpha(const vector<Instance>& vecInsts) {
 
 		const vector<string> &words = pInstance->m_tweet;
 		int curInstSize = words.size();
+		vector<string> chs;
+		int chars_num;
 		for (int i = 0; i < curInstSize; ++i) {
 			string curword = normalize_to_lowerwithdigit(words[i]);
 			if (!m_options.wordEmbFineTune)m_word_stats[curword]++;
+
+			chs.clear();
+			getCharactersFromString(curword, chs);
+			chars_num = chs.size();
+			for (int j = 0; j < chars_num; j++) {
+				string curchar = normalize_to_lowerwithdigit(chs[j]);
+				if (!m_options.charEmbFineTune)m_char_stats[curchar]++;
+			}
 		}
 
 		if (m_options.maxInstance > 0 && numInstance == m_options.maxInstance)
@@ -72,6 +92,20 @@ int Classifier::addTestAlpha(const vector<Instance>& vecInsts) {
 void Classifier::extractFeature(Feature& feat, const Instance* pInstance) {
 	feat.clear();
 	feat.m_tweet_words = pInstance->m_tweet;
+	const vector<string>& words = pInstance->m_tweet;
+	int word_num = words.size();
+
+	vector<string> chs;
+	int chars_num;
+	for (int i = 0; i < word_num; i++) {
+		string curword = normalize_to_lowerwithdigit(words[i]);
+		getCharactersFromString(curword, chs);
+		chars_num = chs.size();
+		for (int j = 0; j < chars_num; j++) {
+			string curchar = normalize_to_lowerwithdigit(chs[j]);
+			feat.m_chars.push_back(curchar);
+		}
+	}
 }
 
 void Classifier::convert2Example(const Instance* pInstance, Example& exam) {
@@ -160,12 +194,21 @@ void Classifier::train(const string& trainFile, const string& devFile, const str
 	}
 
 	m_word_stats[unknownkey] = m_options.wordCutOff + 1;
+	m_char_stats[unknownkey] = m_options.charCutOff + 1;
 	m_driver._modelparams.wordAlpha.initial(m_word_stats, m_options.wordCutOff);
+	m_driver._modelparams.charAlpha.initial(m_char_stats, m_options.charCutOff);
 	if (m_options.wordFile != "") {
 		m_driver._modelparams.words.initial(&m_driver._modelparams.wordAlpha, m_options.wordFile, m_options.wordEmbFineTune);
 	}
 	else{
 		m_driver._modelparams.words.initial(&m_driver._modelparams.wordAlpha, m_options.wordEmbSize, m_options.wordEmbFineTune);
+	}
+
+	if (m_options.charFile != "") {
+		m_driver._modelparams.chars.initial(&m_driver._modelparams.charAlpha, m_options.charFile, m_options.charEmbFineTune);
+	}
+	else{
+		m_driver._modelparams.chars.initial(&m_driver._modelparams.charAlpha, m_options.charEmbSize, m_options.charEmbFineTune);
 	}
 
 	m_driver._hyperparams.setRequared(m_options);
@@ -211,7 +254,7 @@ void Classifier::train(const string& trainFile, const string& devFile, const str
 			eval.correct_label_count += m_driver._eval.correct_label_count;
 
 			if ((curUpdateIter + 1) % m_options.verboseIter == 0) {
-				m_driver.checkgrad(subExamples, curUpdateIter + 1);
+				//m_driver.checkgrad(subExamples, curUpdateIter + 1);
 				std::cout << "current: " << updateIter + 1 << ", total block: " << batchBlock << std::endl;
 				std::cout << "Cost = " << cost << ", Tag Correct(%) = " << eval.getAccuracy() << std::endl;
 			}
