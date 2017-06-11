@@ -61,7 +61,7 @@ public:
 		}
 		_word_window.init(opts.wordDim, opts.wordContext, mem);
 		_left_rnn.init(&model.left_rnn_params, opts.dropProb, true, mem);
-		_right_rnn.init(&model.right_rnn_params, opts.dropProb, true, mem);
+		_right_rnn.init(&model.right_rnn_params, opts.dropProb, false, mem);
 		for (int idx = 0; idx < _rnn_concat.size(); idx++)
 			_rnn_concat[idx].init(opts.hiddenSize * 2, opts.dropProb, mem);
 		_avg_pooling.init(opts.hiddenSize * 2, -1, mem);

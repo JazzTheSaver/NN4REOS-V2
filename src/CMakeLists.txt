@@ -19,3 +19,9 @@ add_subdirectory(NNLSTMMLLabeler)
 add_subdirectory(NNLSTMCharLabeler)
 add_subdirectory(NNCNNCharLabeler)
 add_subdirectory(NNCNNMLCharLabeler)
+
+add_subdirectory(NNBiRNNCharLabeler)
+add_subdirectory(NNBiGRNNCharLabeler)
+add_subdirectory(NNBiLSTMCharLabeler)
+add_subdirectory(NNBiGRNNMLCharLabeler)
+

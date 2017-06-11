@@ -1,3 +1,20 @@
 cmake .. -DEIGEN3_INCLUDE_DIR=C:\eigen -DN3L_INCLUDE_DIR=D:\LibN3L-2.0 -USE_FLOAT=true
 
--l -train corpus_movies\train.txt -dev corpus_movies\dev.txt -test corpus_movies\test.txt -option corpus_movies\option.debug
+-l -train corpus_movies\train.txt -dev corpus_movies\dev.txt -test corpus_movies\test.txt -model model\model -option corpus_movies\option.debug
+
+
+-l -train ES\sample\corpus\hotel_train.sample -dev ES\sample\corpus\hotel_dev.sample -test ES\sample\corpus\hotel_test.sample -model ES\sample\model\model -option ES\sample\options\option.bigrnn > ES\sample\log\log
+
+
+-test ES\sample\corpus\hotel_test.sample -model ES\sample\model\model > ES\sample\log\log.test
+
+
+-l -train ES\hotel\corpus\hotel_train.txt -dev ES\hotel\corpus\hotel_dev.txt -test ES\hotel\corpus\hotel_test.txt -model ES\hotel\model\model -option ES\hotel\options\option.bigrnn > ES\hotel\log\log
+
+-test ES\hotel\corpus\hotel_test.txt -model ES\hotel\model\model -output ES\hotel\output\hotel.output > ES\hotel\log\log.test
+
+-l -train E:\vs_workspace\NN4REOS-V2\ES\phone\corpus\phone_train.txt -dev E:\vs_workspace\NN4REOS-V2\ES\phone\corpus\phone_dev.txt -test E:\vs_workspace\NN4REOS-V2\ES\phone\corpus\phone_test.txt -model E:\vs_workspace\NN4REOS-V2\ES\phone\model\model -option E:\vs_workspace\NN4REOS-V2\ES\phone\options\option.bigrnn > E:\vs_workspace\NN4REOS-V2\ES\phone\log\log
+
+
+-test E:\vs_workspace\NN4REOS-V2\ES\phone\corpus\phone_test.txt -model E:\vs_workspace\NN4REOS-V2\ES\phone\model\model > E:\vs_workspace\NN4REOS-V2\ES\phone\log\log.test
+
